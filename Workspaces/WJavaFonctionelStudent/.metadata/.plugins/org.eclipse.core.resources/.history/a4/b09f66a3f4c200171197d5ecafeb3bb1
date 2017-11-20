@@ -1,0 +1,134 @@
+
+package ch.arc.cours.lamda.f_sequential_to_parralel;
+
+import java.util.Arrays;
+import java.util.stream.IntStream;
+
+import ch.arc.cours.material.HistoTools;
+
+public class UseSequentialToParallel_03_histo
+	{
+
+	/*------------------------------------------------------------------*\
+	|*							Methodes Public							*|
+	\*------------------------------------------------------------------*/
+
+	public static void main(String[] args)
+		{
+		main();
+		}
+
+	public static void main()
+		{
+		System.out.println("sequentiel to parallel : histo");
+
+		histoStandard();
+
+		// stream
+			{
+			histoStreamSequentiel1();
+			histoStreamSequentiel2();
+			}
+		}
+
+	/*------------------------------------------------------------------*\
+	|*							Methodes Private						*|
+	\*------------------------------------------------------------------*/
+
+	/**
+	 * histogramme
+	 */
+	private static void histoStandard()
+		{
+		System.out.println("\nfor : \n");
+
+		final int LIMITE = HistoTools.LIMITE;
+		int m = 1000;
+		int n = LIMITE * m;
+
+		int[] tab = HistoTools.createDataInput(n);
+
+		// code standard, sequentiel
+			{
+			int[] histo = new int[LIMITE];
+
+			// init
+				{
+				for(int s = 0; s < histo.length; s++)
+					{
+					histo[s] = 0;
+					}
+				}
+
+			// fill
+				{
+				for(int s = 0; s < n; s++)
+					{
+					histo[tab[s]]++;
+					}
+				}
+
+			System.out.println("Histo" + Arrays.toString(histo));
+			}
+		}
+
+	/**
+	 * histogramme
+	 */
+	private static void histoStreamSequentiel1()
+		{
+		System.out.println("\nstream : \n");
+
+		final int LIMITE = HistoTools.LIMITE;
+		int m = 1000;
+		int n = LIMITE * m;
+
+		int[] tab = HistoTools.createDataInput(n);
+
+		int[] histo = new int[LIMITE];
+
+		// init histo  : parallel
+
+		// Indication 1 : range
+		// Indication 2 : forEach
+		IntStream.range(0, m).parallel().forEach(i -> histo[i] = 0);
+
+		// fill histo : sequentiel !! (Version parallel, see later chapter grouping)
+
+		// Indication 1 : range
+		// Indication 2 : forEach
+		IntStream.range(0, n).forEach(i -> histo[tab[i]]++);
+
+		System.out.println("Histo" + Arrays.toString(histo));
+		}
+
+	/**
+	 * histogramme, idem previous mais avec un init different
+	 */
+	private static void histoStreamSequentiel2()
+		{
+		System.out.println("\nstream : \n");
+
+		final int LIMITE = HistoTools.LIMITE;
+		int m = 1000;
+		int n = LIMITE * m;
+
+		int[] tab = HistoTools.createDataInput(n);
+
+
+		// init histo  : parallel
+
+		// Indication 1 : stream sur histo
+		// Indication 2 : forEach
+		int[] histo = IntStream.range(0, m).map(i -> 0).toArray();
+
+		// fill histo : sequentiel !! (Version parallel, see later chapter grouping)
+
+		// Indication 1 : range
+		// Indication 2 : forEach
+		IntStream.range(0, m).forEach(i -> histo[tab[i]]++);
+
+		System.out.println("Histo" + Arrays.toString(histo));
+		}
+
+	}

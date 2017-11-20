@@ -1,0 +1,15 @@
+1509351521472	Rename method 'parallelStreamOf'
+1509353566721	Rename method 'sequentialToParralel2'
+1509353581006	Rename method 'sequentialToParralel1'
+1509354343848	Copy compilation unit
+1509354400583	Rename method 'sequentialToParralel3'
+1509354557493	Rename type 'UseSequentialToParallel1'
+1509354584850	Rename type 'UseSequentialToParallel2'
+1509354613597	Rename type 'UseHisto'
+1509354727226	Rename type 'UseSequentialToParallel_02_dotprod'
+1509358015032	Copy compilation unit
+1509358027626	Rename type 'UseCollectors_grouping'
+1509358038854	Rename type 'UseCollectors_grouping_exercice'
+1509358229628	Move compilation unit
+1509358844356	Rename method 'histoStreamParalel1'
+1509364912504	Delete elements

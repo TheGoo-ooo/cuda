@@ -1,0 +1,183 @@
+
+package ch.arc.cours.lamda.g_image.c_transformation;
+
+import java.util.IntSummaryStatistics;
+import java.util.function.IntUnaryOperator;
+import java.util.stream.IntStream;
+
+import javax.swing.ImageIcon;
+
+import ch.arc.cours.lamda.g_image.tools.CalibreurInt;
+import ch.arc.cours.lamda.g_image.tools.Chrono;
+import ch.arc.cours.lamda.g_image.tools.ColorTools;
+import ch.arc.cours.lamda.g_image.tools.ImageTools;
+import ch.arc.cours.lamda.g_image.tools.Interval;
+import ch.arc.cours.lamda.g_image.tools.JFrameImage;
+import ch.arc.cours.lamda.g_image.tools.MagasinImage;
+
+public class UseTransformation_stream_02
+	{
+
+	/*------------------------------------------------------------------*\
+	|*							Methodes Public							*|
+	\*------------------------------------------------------------------*/
+
+	public static void main(String[] args)
+		{
+		main();
+		}
+
+	/**
+	 * Version parallel plus lente!
+	 */
+	public static void main()
+		{
+		System.out.println("transformation : stream");
+
+		ImageIcon image = MagasinImage.LENA;
+//		ImageIcon image = MagasinImage.MOUNTAIN;
+
+		int h = image.getIconHeight();
+		int w = image.getIconWidth();
+
+		new JFrameImage(image); // originale
+
+		// Transformation
+			{
+			int[] tabARGB = ImageTools.toArray(image);
+
+			int[] tabARRG_transformer = transformation(tabARGB, w, h);
+
+			new JFrameImage(ImageTools.toBufferedImage(tabARRG_transformer, w, h)); // Transformer
+			}
+		}
+
+	/*------------------------------------------------------------------*\
+	|*							Methodes Private						*|
+	\*------------------------------------------------------------------*/
+
+	/**
+	 * stream
+	 */
+	private static int[] transformation(int[] tabARGB, int w, int h)
+		{
+		Chrono chrono = new Chrono();
+
+		int[] tabGray = toGray(tabARGB);
+		int[] tabARGB_contraster = contraster(tabGray);
+
+		chrono.stop();
+		System.out.println(chrono);
+
+		return tabARGB_contraster;
+		}
+
+	/**
+	 * stream
+	 */
+	private static int[] toGray(int[] tabARGB)
+		{
+		// Indication 1 : map	et ColorTools
+		// Indication 2 : toArray
+		IntUnaryOperator toGray = s ->
+			{
+			int colorARGB = tabARGB[s];
+
+			int red = ColorTools.red(colorARGB);
+			int green = ColorTools.green(colorARGB);
+			int blue = ColorTools.blue(colorARGB);
+
+			int levelGray = (red + green + blue) / 3;
+
+			//Assert.assertTrue(levelGray >= 0 && levelGray <= 255);
+
+			return ColorTools.toRGB(levelGray);
+			};
+
+		return IntStream.range(0, tabARGB.length).map(toGray).toArray();
+		}
+
+	/**
+	 * stream
+	 */
+	private static int[] contraster(int[] tabARGB)
+		{
+		Interval<Integer> minmax = minMax(tabARGB);
+		int[] tabARGB_output = amplifier(tabARGB, minmax);
+
+		// check
+			{
+			Interval<Integer> minmaxAfter = minMax(tabARGB_output);
+
+			System.out.println("minmax Before= " + minmax);
+			System.out.println("minmax After = " + minmaxAfter);
+
+			//Assert.assertTrue(minmaxAfter.getA() == 0 && minmaxAfter.getB() == 255);
+			}
+
+		return tabARGB_output;
+		}
+
+	/**
+	 * stream
+	 */
+	private static Interval<Integer> minMax(int[] tabARGB)
+		{
+		// Indication 1 : map (red par exemple)
+		// Indication 2 : summaryStatistics
+
+		IntSummaryStatistics stat = IntStream.range(0, tabARGB.length).
+				map(s -> ColorTools.red(tabARGB[s])).summaryStatistics();
+
+		return new Interval<Integer>(stat.getMin(), stat.getMax());
+		}
+
+	/**
+	 * stream
+	 */
+	private static int[] amplifier(int[] tabARGB, Interval<Integer> minmax)
+		{
+		int min = minmax.getA();
+		int max = minmax.getB();
+		Interval<Integer> depart = new Interval<Integer>(min, max);
+		Interval<Integer> arriver = new Interval<Integer>(0, 255);
+		CalibreurInt calibreur = new CalibreurInt(depart, arriver);
+
+		final int[] tab = tabARGB;
+
+		// v1 : 3 map
+			{
+			// Indication 1 : map (red par exemple)
+			// Indication 2 : map (calibrer)
+			// Indication 3 : toArray
+
+//			tabARGB = IntStream.range(0, tabARGB.length).parallel()
+//				.map(i -> ColorTools.red(tab[i])).map(calibreur::calibrer).toArray();
+
+			//return tabARGB;
+			}
+
+		// v2 : 1 map (plus performant)
+			{
+			// Indication 1: map
+			// Indication 2: toArray
+			System.out.println(ColorTools.red(tab[0]) + " Coucou1");
+			System.out.println(calibreur.calibrer(ColorTools.red(tab[0])) + " Coucou2");
+			
+			
+			
+			// HELP!
+
+			//The unaryOperator works but the IntStream return zeros... :-(
+			IntUnaryOperator amplifier = i -> calibreur.calibrer(ColorTools.red(tab[i]));
+			tabARGB = IntStream.range(0, tabARGB.length).map(amplifier).toArray();
+			
+			
+			
+			
+
+			System.out.println(ColorTools.red(tabARGB[2]) + " Coucou3");
+			return tabARGB;
+			}
+		}
+	}
